@@ -475,13 +475,13 @@ static void process_serv(u8_t *pkt, int len) {
 	char squeezeserver[]=SQUEEZENETWORK;
 	
 	if(pkt[4] == 0 && pkt[5] == 0 && pkt[6] == 0 && pkt[7] == 1) {
-        server_addr(squeezeserver, &new_server, &slimproto_port);
+		server_addr(squeezeserver, &new_server, &slimproto_port);
 	} else {
-        new_server = serv->server_ip;
+		new_server = serv->server_ip;
 	}
 	
-    LOG_INFO("switch server");
-    
+	LOG_INFO("switch server");
+	
 	if (len - sizeof(struct serv_packet) == 10) {
 		if (!new_server_cap) {
 			new_server_cap = malloc(SYNC_CAP_LEN + 10 + 1);
