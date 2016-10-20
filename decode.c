@@ -35,6 +35,7 @@ struct decodestate decode;
 struct codec *codecs[MAX_CODECS];
 struct codec *codec;
 static bool running = true;
+static u8_t codec_loaded[5];
 
 #define LOCK_S   mutex_lock(streambuf->mutex)
 #define UNLOCK_S mutex_unlock(streambuf->mutex)
@@ -126,6 +127,7 @@ void decode_init(log_level level, const char *include_codecs, const char *exclud
 	int i;
 
 	loglevel = level;
+	codec_loaded[0] = 0;
 
 	LOG_INFO("init decode, include codecs: %s exclude codecs: %s", include_codecs ? include_codecs : "", exclude_codecs);
 
@@ -242,6 +244,11 @@ void codec_open(u8_t format, u8_t sample_size, u8_t sample_rate, u8_t channels, 
 			codec = codecs[i];
 			
 			codec->open(sample_size, sample_rate, channels, endianness);
+			codec_loaded[0] = format;
+			codec_loaded[1] = sample_size;
+			codec_loaded[2] = sample_rate;
+			codec_loaded[3] = channels;
+			codec_loaded[4] = endianness;
 
 			decode.state = DECODE_READY;
 
@@ -255,3 +262,11 @@ void codec_open(u8_t format, u8_t sample_size, u8_t sample_rate, u8_t channels, 
 	LOG_ERROR("codec not found");
 }
 
+void codec_verify(u8_t format) {
+	if(codec_loaded[0] != 0 && format != codec_loaded[0]) {
+		LOG_INFO("wrong codec loaded, changing codec: '%c' -> '%c'", codec_loaded[0], format);
+		codec->close();
+		codec = NULL;
+		codec_open(format, codec_loaded[1], codec_loaded[2], codec_loaded[3], codec_loaded[4]);
+	}
+}
