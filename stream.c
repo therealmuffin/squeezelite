@@ -79,6 +79,7 @@ static void _disconnect(stream_state state, disconnect_code disconnect) {
 }
 
 static void *stream_thread() {
+	const char *flac_header = "Content-Type: audio/flac";
 
 	while (running) {
 
@@ -178,6 +179,9 @@ static void *stream_thread() {
 						if (endtok == 4) {
 							*(stream.header + stream.header_len) = '\0';
 							LOG_INFO("headers: len: %d\n%s", stream.header_len, stream.header);
+							if(strstr(stream.header, flac_header) != NULL) {
+								codec_verify('f');
+							}
 							stream.state = stream.cont_wait ? STREAMING_WAIT : STREAMING_BUFFERING;
 							wake_controller();
 						}
